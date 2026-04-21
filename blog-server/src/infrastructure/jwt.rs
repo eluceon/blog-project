@@ -3,8 +3,7 @@ use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode}
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Token lifetime in seconds (24 hours).
-const TOKEN_EXPIRY_SECS: u64 = 86_400;
+const TOKEN_EXPIRY_SECS: u64 = 24 * 60 * 60;
 
 /// Claims embedded in a JWT token.
 #[derive(Debug, Serialize, Deserialize, Clone)]

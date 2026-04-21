@@ -19,7 +19,6 @@ use crate::{
     presentation::middleware::AuthenticatedUser,
 };
 
-/// Map a domain error to the corresponding HTTP error response.
 fn map_domain_error(e: DomainError) -> actix_web::Error {
     match e {
         DomainError::UserNotFound | DomainError::PostNotFound => ErrorNotFound(e.to_string()),
@@ -33,7 +32,6 @@ fn map_domain_error(e: DomainError) -> actix_web::Error {
     }
 }
 
-/// Extract the authenticated user inserted by the JWT middleware.
 fn get_auth_user(req: &HttpRequest) -> Result<AuthenticatedUser, actix_web::Error> {
     req.extensions()
         .get::<AuthenticatedUser>()
@@ -41,9 +39,6 @@ fn get_auth_user(req: &HttpRequest) -> Result<AuthenticatedUser, actix_web::Erro
         .ok_or_else(|| ErrorUnauthorized("Not authenticated"))
 }
 
-// ─── Auth endpoints ───────────────────────────────────────────────────────────
-
-/// `POST /api/auth/register` — register a new user and return a JWT token.
 pub async fn register(
     auth_service: web::Data<Arc<AuthService>>,
     body: web::Json<RegisterUserRequest>,
@@ -56,7 +51,6 @@ pub async fn register(
     Ok(HttpResponse::Created().json(json!({ "token": token, "user": user })))
 }
 
-/// `POST /api/auth/login` — verify credentials and return a JWT token.
 pub async fn login(
     auth_service: web::Data<Arc<AuthService>>,
     body: web::Json<LoginUserRequest>,
@@ -69,9 +63,6 @@ pub async fn login(
     Ok(HttpResponse::Ok().json(json!({ "token": token, "user": user })))
 }
 
-// ─── Post endpoints ───────────────────────────────────────────────────────────
-
-/// `POST /api/posts` — create a new post (requires authentication).
 pub async fn create_post(
     req: HttpRequest,
     blog_service: web::Data<Arc<BlogService>>,
@@ -86,7 +77,6 @@ pub async fn create_post(
     Ok(HttpResponse::Created().json(post))
 }
 
-/// `GET /api/posts/{id}` — retrieve a single post by ID (public).
 pub async fn get_post(
     blog_service: web::Data<Arc<BlogService>>,
     path: web::Path<i64>,
@@ -97,7 +87,6 @@ pub async fn get_post(
     Ok(HttpResponse::Ok().json(post))
 }
 
-/// `PUT /api/posts/{id}` — update a post (requires authentication; caller must be author).
 pub async fn update_post(
     req: HttpRequest,
     blog_service: web::Data<Arc<BlogService>>,
@@ -114,7 +103,6 @@ pub async fn update_post(
     Ok(HttpResponse::Ok().json(post))
 }
 
-/// `DELETE /api/posts/{id}` — delete a post (requires authentication; caller must be author).
 pub async fn delete_post(
     req: HttpRequest,
     blog_service: web::Data<Arc<BlogService>>,
@@ -130,7 +118,6 @@ pub async fn delete_post(
     Ok(HttpResponse::NoContent().finish())
 }
 
-/// Query parameters for the post list endpoint.
 #[derive(Deserialize)]
 pub struct ListQuery {
     /// Maximum number of posts to return (defaults to 10).
@@ -368,7 +355,6 @@ mod tests {
     }
 }
 
-/// `GET /api/posts` — paginated list of all posts (public).
 pub async fn list_posts(
     blog_service: web::Data<Arc<BlogService>>,
     query: web::Query<ListQuery>,

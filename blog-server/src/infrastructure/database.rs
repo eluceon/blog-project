@@ -1,14 +1,20 @@
 use sqlx::{PgPool, postgres::PgPoolOptions};
+use tracing::info;
 
-/// Create a PostgreSQL connection pool with up to 5 connections.
 pub async fn create_pool(database_url: &str) -> Result<PgPool, sqlx::Error> {
-    PgPoolOptions::new()
-        .max_connections(5)
+    let pool = PgPoolOptions::new()
+        .max_connections(20)
+        .min_connections(5)
+        .acquire_timeout(std::time::Duration::from_secs(5))
         .connect(database_url)
-        .await
+        .await?;
+    info!("connected to PostgreSQL");
+    Ok(pool)
 }
 
-/// Apply all pending SQL migrations from the `migrations/` directory.
 pub async fn run_migrations(pool: &PgPool) -> Result<(), sqlx::migrate::MigrateError> {
-    sqlx::migrate!("./migrations").run(pool).await
+    info!("running database migrations");
+    sqlx::migrate!().run(pool).await?;
+    info!("migrations completed");
+    Ok(())
 }

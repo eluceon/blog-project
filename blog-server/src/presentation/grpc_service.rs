@@ -17,7 +17,6 @@ use crate::{
     },
 };
 
-/// Map a domain error to the corresponding gRPC status code.
 fn domain_to_status(e: DomainError) -> Status {
     match e {
         DomainError::UserNotFound | DomainError::PostNotFound => Status::not_found(e.to_string()),
@@ -32,7 +31,6 @@ fn domain_to_status(e: DomainError) -> Status {
     }
 }
 
-/// Extract the Bearer token from gRPC request metadata.
 // tonic::Status is 176 bytes and cannot be boxed here — it is tonic's own return type.
 #[allow(clippy::result_large_err)]
 fn extract_bearer_token<T>(req: &Request<T>) -> Result<&str, Status> {
@@ -43,7 +41,6 @@ fn extract_bearer_token<T>(req: &Request<T>) -> Result<&str, Status> {
         .ok_or_else(|| Status::unauthenticated("Missing or invalid authorization header"))
 }
 
-/// Convert a domain `Post` to its protobuf representation.
 fn post_to_proto(p: crate::domain::Post) -> ProtoPost {
     ProtoPost {
         id: p.id,
@@ -56,7 +53,6 @@ fn post_to_proto(p: crate::domain::Post) -> ProtoPost {
     }
 }
 
-/// gRPC service implementation that delegates to the application layer.
 #[derive(Clone)]
 pub struct BlogGrpcService {
     auth_service: Arc<AuthService>,

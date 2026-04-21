@@ -16,7 +16,6 @@ pub fn make_jwt() -> Arc<JwtService> {
     Arc::new(JwtService::new(TEST_JWT_SECRET))
 }
 
-/// Build a `Post` fixture with the given id and author_id.
 pub fn make_post(id: i64, author_id: i64) -> Post {
     Post {
         id,

@@ -30,9 +30,7 @@ use presentation::{
 };
 use proto::blog::blog_service_server::BlogServiceServer;
 
-/// HTTP server port
 const HTTP_PORT: u16 = 8080;
-/// gRPC server port
 const GRPC_PORT: u16 = 50051;
 
 #[tokio::main]
