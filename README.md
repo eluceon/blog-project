@@ -25,7 +25,7 @@ src/
 ## Prerequisites
 
 - Rust stable (1.75+) with `cargo`
-- PostgreSQL 14+
+- Docker + Docker Compose — for the PostgreSQL database
 - `protoc` — Protocol Buffers compiler
 - `trunk` — for the WASM frontend (`cargo install trunk`)
 
@@ -41,21 +41,25 @@ brew install protobuf
 
 ## Setup
 
-### 1. Create a PostgreSQL database
+### 1. Start the database
 
-```sql
-CREATE DATABASE blog_db;
-CREATE USER blog_user WITH PASSWORD 'secret';
-GRANT ALL PRIVILEGES ON DATABASE blog_db TO blog_user;
+Copy the example env file and start PostgreSQL via Docker Compose:
+
+```bash
+cp docker/postgres/.env.example docker/postgres/.env
+# Edit docker/postgres/.env if you want different credentials
+
+docker compose -f docker/docker-compose.yml up -d
 ```
 
-### 2. Configure environment
+### 2. Configure the server environment
 
 Copy and edit the example env file inside `blog-server/`:
 
 ```bash
 cp blog-server/.env.example blog-server/.env
-# Edit DATABASE_URL and JWT_SECRET
+# Edit DATABASE_URL to match docker/postgres/.env credentials, e.g.:
+# DATABASE_URL=postgres://postgres_user:postgres_password@127.0.0.1:5433/blog_db
 ```
 
 `JWT_SECRET` must be at least 32 characters long.
