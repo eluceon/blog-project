@@ -65,3 +65,68 @@ impl AuthService {
         Ok((user, token))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        domain::{DomainError, LoginUserRequest, RegisterUserRequest},
+        test_mocks::{MockUserRepository, make_jwt},
+    };
+
+    fn reg(username: &str) -> RegisterUserRequest {
+        RegisterUserRequest {
+            username: username.to_owned(),
+            email: format!("{username}@example.com"),
+            password: "password123".to_owned(),
+        }
+    }
+
+    #[tokio::test]
+    async fn register_returns_user_and_non_empty_token() {
+        let svc = AuthService::new(MockUserRepository::empty(), make_jwt());
+        let (user, token) = svc.register(&reg("alice")).await.unwrap();
+        assert_eq!(user.username, "alice");
+        assert!(!token.is_empty());
+    }
+
+    #[tokio::test]
+    async fn register_propagates_already_exists() {
+        let svc = AuthService::new(MockUserRepository::always_exists(), make_jwt());
+        assert!(matches!(
+            svc.register(&reg("alice")).await,
+            Err(DomainError::UserAlreadyExists)
+        ));
+    }
+
+    #[tokio::test]
+    async fn login_with_correct_password_returns_token() {
+        let repo = MockUserRepository::empty();
+        let svc = AuthService::new(repo, make_jwt());
+        svc.register(&reg("bob")).await.unwrap();
+
+        let login = LoginUserRequest {
+            username: "bob".to_owned(),
+            password: "password123".to_owned(),
+        };
+        let (user, token) = svc.login(&login).await.unwrap();
+        assert_eq!(user.username, "bob");
+        assert!(!token.is_empty());
+    }
+
+    #[tokio::test]
+    async fn login_with_wrong_password_returns_invalid_credentials() {
+        let repo = MockUserRepository::empty();
+        let svc = AuthService::new(repo, make_jwt());
+        svc.register(&reg("charlie")).await.unwrap();
+
+        let login = LoginUserRequest {
+            username: "charlie".to_owned(),
+            password: "wrong_password".to_owned(),
+        };
+        assert!(matches!(
+            svc.login(&login).await,
+            Err(DomainError::InvalidCredentials)
+        ));
+    }
+}

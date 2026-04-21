@@ -145,6 +145,229 @@ fn default_limit() -> i64 {
     10
 }
 
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use actix_web::{App, web};
+    use actix_web_httpauth::middleware::HttpAuthentication;
+    use serde_json::Value;
+
+    use super::*;
+    use crate::{
+        application::{AuthService, BlogService},
+        data::{PostRepository, UserRepository},
+        domain::RegisterUserRequest,
+        infrastructure::jwt::JwtService,
+        presentation::middleware::jwt_validator,
+        test_mocks::{MockPostRepository, MockUserRepository, make_jwt, make_post},
+    };
+
+    /// Build a test-mode actix service with the same route layout as main.rs.
+    macro_rules! init_app {
+        ($auth_svc:expr, $blog_svc:expr, $jwt:expr) => {{
+            let auth_mw = HttpAuthentication::bearer(jwt_validator);
+            actix_web::test::init_service(
+                App::new()
+                    .app_data(web::Data::new($auth_svc))
+                    .app_data(web::Data::new($blog_svc))
+                    .app_data(web::Data::new($jwt))
+                    .service(
+                        web::scope("/api/auth")
+                            .route("/register", web::post().to(register))
+                            .route("/login", web::post().to(login)),
+                    )
+                    .service(
+                        web::scope("/api/posts")
+                            .route("", web::get().to(list_posts))
+                            .route("/{id}", web::get().to(get_post))
+                            .service(
+                                web::scope("")
+                                    .wrap(auth_mw)
+                                    .route("", web::post().to(create_post))
+                                    .route("/{id}", web::put().to(update_post))
+                                    .route("/{id}", web::delete().to(delete_post)),
+                            ),
+                    ),
+            )
+            .await
+        }};
+    }
+
+    fn make_services(
+        user_repo: Arc<dyn UserRepository>,
+        post_repo: Arc<dyn PostRepository>,
+        jwt: Arc<JwtService>,
+    ) -> (Arc<AuthService>, Arc<BlogService>) {
+        (
+            Arc::new(AuthService::new(user_repo, jwt)),
+            Arc::new(BlogService::new(post_repo)),
+        )
+    }
+
+    #[actix_web::test]
+    async fn register_returns_201_with_token_and_user() {
+        let jwt = make_jwt();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::post()
+            .uri("/api/auth/register")
+            .set_json(serde_json::json!({
+                "username": "alice", "email": "a@a.com", "password": "secret123"
+            }))
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 201);
+        let body: Value = actix_web::test::read_body_json(resp).await;
+        assert!(body["token"].is_string());
+        assert_eq!(body["user"]["username"], "alice");
+    }
+
+    #[actix_web::test]
+    async fn login_returns_200_with_valid_credentials() {
+        let jwt = make_jwt();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        // Seed a user via the service layer so the argon2 hash is stored.
+        auth.register(&RegisterUserRequest {
+            username: "bob".to_owned(),
+            email: "b@b.com".to_owned(),
+            password: "pass123".to_owned(),
+        })
+        .await
+        .unwrap();
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::post()
+            .uri("/api/auth/login")
+            .set_json(serde_json::json!({"username": "bob", "password": "pass123"}))
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 200);
+        let body: Value = actix_web::test::read_body_json(resp).await;
+        assert!(body["token"].is_string());
+    }
+
+    #[actix_web::test]
+    async fn login_returns_401_on_wrong_password() {
+        let jwt = make_jwt();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        auth.register(&RegisterUserRequest {
+            username: "carol".to_owned(),
+            email: "c@c.com".to_owned(),
+            password: "right".to_owned(),
+        })
+        .await
+        .unwrap();
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::post()
+            .uri("/api/auth/login")
+            .set_json(serde_json::json!({"username": "carol", "password": "wrong"}))
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 401);
+    }
+
+    #[actix_web::test]
+    async fn list_posts_returns_200_with_posts_array() {
+        let jwt = make_jwt();
+        let posts = vec![make_post(1, 1), make_post(2, 1)];
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::with(posts),
+            jwt.clone(),
+        );
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::get()
+            .uri("/api/posts")
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 200);
+        let body: Value = actix_web::test::read_body_json(resp).await;
+        assert_eq!(body["total"], 2);
+        assert!(body["posts"].is_array());
+    }
+
+    #[actix_web::test]
+    async fn get_post_returns_404_when_not_found() {
+        let jwt = make_jwt();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::get()
+            .uri("/api/posts/999")
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 404);
+    }
+
+    #[actix_web::test]
+    async fn create_post_without_token_returns_401() {
+        let jwt = make_jwt();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::post()
+            .uri("/api/posts")
+            .set_json(serde_json::json!({"title": "T", "content": "C"}))
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 401);
+    }
+
+    #[actix_web::test]
+    async fn create_post_with_valid_token_returns_201() {
+        let jwt = make_jwt();
+        let token = jwt.generate_token(1, "dave").unwrap();
+        let (auth, blog) = make_services(
+            MockUserRepository::empty(),
+            MockPostRepository::empty(),
+            jwt.clone(),
+        );
+        let app = init_app!(auth, blog, jwt);
+
+        let req = actix_web::test::TestRequest::post()
+            .uri("/api/posts")
+            .insert_header(("Authorization", format!("Bearer {token}")))
+            .set_json(serde_json::json!({"title": "Hello", "content": "World"}))
+            .to_request();
+        let resp = actix_web::test::call_service(&app, req).await;
+
+        assert_eq!(resp.status().as_u16(), 201);
+        let body: Value = actix_web::test::read_body_json(resp).await;
+        assert_eq!(body["title"], "Hello");
+        assert_eq!(body["author_id"], 1);
+    }
+}
+
 /// `GET /api/posts` — paginated list of all posts (public).
 pub async fn list_posts(
     blog_service: web::Data<Arc<BlogService>>,

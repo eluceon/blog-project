@@ -55,3 +55,36 @@ impl JwtService {
         Ok(data.claims)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SECRET: &str = "test-secret-minimum-32-chars-pad!!";
+
+    #[test]
+    fn round_trip_preserves_claims() {
+        let svc = JwtService::new(SECRET);
+        let token = svc.generate_token(42, "alice").unwrap();
+        let claims = svc.verify_token(&token).unwrap();
+        assert_eq!(claims.user_id, 42);
+        assert_eq!(claims.username, "alice");
+        assert!(claims.exp > 0);
+    }
+
+    #[test]
+    fn wrong_secret_is_rejected() {
+        let svc_a = JwtService::new("secret-a-minimum-32-chars-padded!!");
+        let svc_b = JwtService::new("secret-b-minimum-32-chars-padded!!");
+        let token = svc_a.generate_token(1, "bob").unwrap();
+        assert!(svc_b.verify_token(&token).is_err());
+    }
+
+    #[test]
+    fn tampered_token_is_rejected() {
+        let svc = JwtService::new(SECRET);
+        let token = svc.generate_token(1, "bob").unwrap();
+        let tampered = format!("{token}tampered");
+        assert!(svc.verify_token(&tampered).is_err());
+    }
+}

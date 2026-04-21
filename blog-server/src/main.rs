@@ -13,6 +13,8 @@ mod domain;
 mod infrastructure;
 mod presentation;
 mod proto;
+#[cfg(test)]
+mod test_mocks;
 
 use application::{AuthService, BlogService};
 use data::{PostgresPostRepository, PostgresUserRepository};
@@ -48,7 +50,6 @@ async fn main() -> anyhow::Result<()> {
     info!("Running migrations...");
     run_migrations(&pool).await?;
 
-    // ─── Services ─────────────────────────────────────────────────────────────
     let jwt_service = Arc::new(JwtService::new(&jwt_secret));
     let user_repo: Arc<dyn data::UserRepository> =
         Arc::new(PostgresUserRepository::new(pool.clone()));
@@ -58,7 +59,6 @@ async fn main() -> anyhow::Result<()> {
     let auth_service = Arc::new(AuthService::new(user_repo, jwt_service.clone()));
     let blog_service = Arc::new(BlogService::new(post_repo));
 
-    // ─── gRPC server ──────────────────────────────────────────────────────────
     let grpc_service = BlogGrpcService::new(
         auth_service.clone(),
         blog_service.clone(),
@@ -71,7 +71,6 @@ async fn main() -> anyhow::Result<()> {
         .add_service(BlogServiceServer::new(grpc_service))
         .serve(grpc_addr);
 
-    // ─── HTTP server ──────────────────────────────────────────────────────────
     let auth_service_http = auth_service.clone();
     let blog_service_http = blog_service.clone();
     let jwt_service_http = jwt_service.clone();
