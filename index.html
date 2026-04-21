@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog — Frontend</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 700px;
+               margin: 60px auto; padding: 0 1.5rem; color: #333; }
+        h1 { margin-bottom: 0.5rem; }
+        pre { background: #f4f4f4; border-radius: 6px; padding: 1rem;
+              font-size: 0.9rem; overflow-x: auto; }
+        code { font-family: monospace; }
+        p { margin: 1rem 0; line-height: 1.6; }
+        a { color: #4a6cf7; }
+    </style>
+</head>
+<body>
+    <h1>📝 Blog Frontend</h1>
+    <p>
+        The WASM frontend is built with <strong>Yew</strong> and bundled by
+        <strong>trunk</strong>. This file is a placeholder; the real app lives in
+        <code>blog-wasm/</code>.
+    </p>
+
+    <h2>Build &amp; run</h2>
+    <pre><code># 1. Install trunk (one-time)
+cargo install trunk
+
+# 2. Build or serve the Yew app
+cd blog-wasm
+trunk serve --port 8000   # dev server (blog-server occupies 8080)
+# or
+trunk build --release     # production output → blog-wasm/dist/
+
+# 3. Open in browser
+open http://localhost:8000</code></pre>
+
+    <p>
+        Make sure <code>blog-server</code> is running on port <strong>8080</strong>
+        before opening the frontend — the Yew app talks to
+        <code>http://localhost:8080</code>.
+    </p>
+</body>
+</html>

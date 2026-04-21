@@ -1,0 +1,29 @@
+[package]
+name = "blog-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tonic = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
+async-trait = { workspace = true }
+dotenvy = { workspace = true }
+
+actix-web = "4"
+actix-web-httpauth = "0.8"
+actix-cors = "0.7"
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "chrono", "macros"] }
+jsonwebtoken = "9"
+argon2 = "0.5"
+
+[build-dependencies]
+tonic-build = "0.12"

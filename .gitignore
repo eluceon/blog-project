@@ -1,0 +1,13 @@
+/target
+**/.env
+.blog_token
+.sqlx/
+pkg/
+dist/
+node_modules/
+Cargo.lock
+*.so
+*.dylib
+.idea
+.PVS-Studio
+

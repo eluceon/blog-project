@@ -1,0 +1,12 @@
+[package]
+name = "blog-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+dotenvy = { workspace = true }
+blog-client = { path = "../blog-client" }
+clap = { version = "4", features = ["derive"] }
