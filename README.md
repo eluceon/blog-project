@@ -27,7 +27,7 @@ src/
 - Rust stable (1.75+) with `cargo`
 - PostgreSQL 14+
 - `protoc` — Protocol Buffers compiler
-- `wasm-pack` — for the WASM frontend (`cargo install wasm-pack`)
+- `trunk` — for the WASM frontend (`cargo install trunk`)
 
 ### Install protoc
 
@@ -73,7 +73,7 @@ cargo build --bin blog-server
 cargo build --bin blog-cli
 
 # Build the WASM frontend
-cd blog-wasm && wasm-pack build --target web && cd ..
+cd blog-wasm && trunk build --release && cd ..
 ```
 
 ## Running
@@ -89,11 +89,10 @@ cargo run --bin blog-server
 
 ### WASM frontend
 
-After building with wasm-pack:
-
 ```bash
-python3 -m http.server 8000
-# Open http://localhost:8000 in your browser
+cd blog-wasm
+trunk serve --port 8000      # dev server with hot-reload → http://localhost:8000
+trunk build --release         # production build → blog-wasm/dist/
 ```
 
 ### CLI
