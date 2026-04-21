@@ -33,6 +33,8 @@ fn domain_to_status(e: DomainError) -> Status {
 }
 
 /// Extract the Bearer token from gRPC request metadata.
+// tonic::Status is 176 bytes and cannot be boxed here — it is tonic's own return type.
+#[allow(clippy::result_large_err)]
 fn extract_bearer_token<T>(req: &Request<T>) -> Result<&str, Status> {
     req.metadata()
         .get("authorization")

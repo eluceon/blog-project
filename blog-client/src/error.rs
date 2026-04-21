@@ -6,7 +6,7 @@ pub enum BlogClientError {
     Http(#[from] reqwest::Error),
 
     #[error("gRPC error: {0}")]
-    Grpc(#[from] tonic::Status),
+    Grpc(Box<tonic::Status>),
 
     #[error("gRPC transport error: {0}")]
     Transport(#[from] tonic::transport::Error),
@@ -28,3 +28,9 @@ pub enum BlogClientError {
 }
 
 pub type Result<T> = std::result::Result<T, BlogClientError>;
+
+impl From<tonic::Status> for BlogClientError {
+    fn from(s: tonic::Status) -> Self {
+        BlogClientError::Grpc(Box::new(s))
+    }
+}
