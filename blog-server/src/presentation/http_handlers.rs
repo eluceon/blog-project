@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
 use actix_web::{
-    error::{ErrorConflict, ErrorForbidden, ErrorInternalServerError, ErrorNotFound, ErrorUnauthorized},
-    web, HttpMessage, HttpRequest, HttpResponse, Responder,
+    HttpMessage, HttpRequest, HttpResponse, Responder,
+    error::{
+        ErrorConflict, ErrorForbidden, ErrorInternalServerError, ErrorNotFound, ErrorUnauthorized,
+    },
+    web,
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -10,7 +13,9 @@ use tracing::{error, info};
 
 use crate::{
     application::{AuthService, BlogService},
-    domain::{CreatePostRequest, DomainError, LoginUserRequest, RegisterUserRequest, UpdatePostRequest},
+    domain::{
+        CreatePostRequest, DomainError, LoginUserRequest, RegisterUserRequest, UpdatePostRequest,
+    },
     presentation::middleware::AuthenticatedUser,
 };
 
@@ -44,7 +49,10 @@ pub async fn register(
     body: web::Json<RegisterUserRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
     info!("POST /api/auth/register username={}", body.username);
-    let (user, token) = auth_service.register(&body.0).await.map_err(map_domain_error)?;
+    let (user, token) = auth_service
+        .register(&body.0)
+        .await
+        .map_err(map_domain_error)?;
     Ok(HttpResponse::Created().json(json!({ "token": token, "user": user })))
 }
 
@@ -54,7 +62,10 @@ pub async fn login(
     body: web::Json<LoginUserRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
     info!("POST /api/auth/login username={}", body.username);
-    let (user, token) = auth_service.login(&body.0).await.map_err(map_domain_error)?;
+    let (user, token) = auth_service
+        .login(&body.0)
+        .await
+        .map_err(map_domain_error)?;
     Ok(HttpResponse::Ok().json(json!({ "token": token, "user": user })))
 }
 
@@ -139,7 +150,10 @@ pub async fn list_posts(
     blog_service: web::Data<Arc<BlogService>>,
     query: web::Query<ListQuery>,
 ) -> Result<impl Responder, actix_web::Error> {
-    info!("GET /api/posts limit={} offset={}", query.limit, query.offset);
+    info!(
+        "GET /api/posts limit={} offset={}",
+        query.limit, query.offset
+    );
     let (posts, total) = blog_service
         .list_posts(query.limit, query.offset)
         .await

@@ -7,7 +7,11 @@ use crate::domain::{DomainError, RegisterUserRequest, User};
 #[async_trait]
 pub trait UserRepository: Send + Sync {
     /// Persist a new user with a pre-hashed password.
-    async fn create(&self, req: &RegisterUserRequest, password_hash: &str) -> Result<User, DomainError>;
+    async fn create(
+        &self,
+        req: &RegisterUserRequest,
+        password_hash: &str,
+    ) -> Result<User, DomainError>;
     /// Find a user by their unique username.
     async fn find_by_username(&self, username: &str) -> Result<User, DomainError>;
     /// Find a user by their primary key.
@@ -51,7 +55,11 @@ impl PostgresUserRepository {
 
 #[async_trait]
 impl UserRepository for PostgresUserRepository {
-    async fn create(&self, req: &RegisterUserRequest, password_hash: &str) -> Result<User, DomainError> {
+    async fn create(
+        &self,
+        req: &RegisterUserRequest,
+        password_hash: &str,
+    ) -> Result<User, DomainError> {
         sqlx::query_as::<_, UserRow>(
             "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
              RETURNING id, username, email, password_hash, created_at",
@@ -63,7 +71,9 @@ impl UserRepository for PostgresUserRepository {
         .await
         .map(Into::into)
         .map_err(|e| match e {
-            sqlx::Error::Database(ref db) if db.is_unique_violation() => DomainError::UserAlreadyExists,
+            sqlx::Error::Database(ref db) if db.is_unique_violation() => {
+                DomainError::UserAlreadyExists
+            }
             _ => DomainError::Database(e.to_string()),
         })
     }

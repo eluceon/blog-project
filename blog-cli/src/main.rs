@@ -85,7 +85,9 @@ fn token_path() -> PathBuf {
 }
 
 fn load_token() -> Option<String> {
-    fs::read_to_string(token_path()).ok().map(|s| s.trim().to_owned())
+    fs::read_to_string(token_path())
+        .ok()
+        .map(|s| s.trim().to_owned())
 }
 
 fn save_token(token: &str) -> Result<()> {
@@ -97,14 +99,10 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let transport = if cli.grpc {
-        let addr = cli
-            .server
-            .unwrap_or_else(|| DEFAULT_GRPC_SERVER.to_owned());
+        let addr = cli.server.unwrap_or_else(|| DEFAULT_GRPC_SERVER.to_owned());
         Transport::Grpc(addr)
     } else {
-        let addr = cli
-            .server
-            .unwrap_or_else(|| DEFAULT_HTTP_SERVER.to_owned());
+        let addr = cli.server.unwrap_or_else(|| DEFAULT_HTTP_SERVER.to_owned());
         Transport::Http(addr)
     };
 
@@ -154,10 +152,7 @@ async fn main() -> Result<()> {
         }
 
         Commands::Get { id } => {
-            let post = client
-                .get_post(id)
-                .await
-                .context("Get post failed")?;
+            let post = client.get_post(id).await.context("Get post failed")?;
             println!("ID:      {}", post.id);
             println!("Title:   {}", post.title);
             println!("Author:  {}", post.author_username);
@@ -177,10 +172,7 @@ async fn main() -> Result<()> {
         }
 
         Commands::Delete { id } => {
-            client
-                .delete_post(id)
-                .await
-                .context("Delete post failed")?;
+            client.delete_post(id).await.context("Delete post failed")?;
             println!("Post {id} deleted.");
         }
 

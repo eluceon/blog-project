@@ -89,7 +89,11 @@ impl HttpBlogClient {
             .send()
             .await?;
 
-        Ok(self.check_response(resp).await?.json::<AuthResponse>().await?)
+        Ok(self
+            .check_response(resp)
+            .await?
+            .json::<AuthResponse>()
+            .await?)
     }
 
     pub async fn login(&self, username: &str, password: &str) -> Result<AuthResponse> {
@@ -103,7 +107,11 @@ impl HttpBlogClient {
             .send()
             .await?;
 
-        Ok(self.check_response(resp).await?.json::<AuthResponse>().await?)
+        Ok(self
+            .check_response(resp)
+            .await?
+            .json::<AuthResponse>()
+            .await?)
     }
 
     pub async fn create_post(&self, token: &str, title: &str, content: &str) -> Result<PostData> {
@@ -168,6 +176,10 @@ impl HttpBlogClient {
             .send()
             .await?;
 
-        Ok(self.check_response(resp).await?.json::<ListPostsResponse>().await?)
+        Ok(self
+            .check_response(resp)
+            .await?
+            .json::<ListPostsResponse>()
+            .await?)
     }
 }

@@ -10,20 +10,17 @@ use crate::{
     },
     infrastructure::jwt::JwtService,
     proto::blog::{
-        self,
+        self, AuthResponse, DeletePostRequest, DeletePostResponse, GetPostRequest,
+        ListPostsRequest, ListPostsResponse, LoginRequest, Post as ProtoPost, PostResponse,
+        RegisterRequest, UpdatePostRequest as ProtoUpdatePostRequest,
         blog_service_server::BlogService as BlogServiceTrait,
-        AuthResponse, DeletePostRequest, DeletePostResponse, GetPostRequest, ListPostsRequest,
-        ListPostsResponse, LoginRequest, Post as ProtoPost, PostResponse, RegisterRequest,
-        UpdatePostRequest as ProtoUpdatePostRequest,
     },
 };
 
 /// Map a domain error to the corresponding gRPC status code.
 fn domain_to_status(e: DomainError) -> Status {
     match e {
-        DomainError::UserNotFound | DomainError::PostNotFound => {
-            Status::not_found(e.to_string())
-        }
+        DomainError::UserNotFound | DomainError::PostNotFound => Status::not_found(e.to_string()),
         DomainError::UserAlreadyExists => Status::already_exists(e.to_string()),
         DomainError::InvalidCredentials => Status::unauthenticated(e.to_string()),
         DomainError::Forbidden => Status::permission_denied(e.to_string()),
@@ -194,8 +191,16 @@ impl BlogServiceTrait for BlogGrpcService {
         let req = request.into_inner();
         info!("gRPC UpdatePost id={} user_id={}", req.id, claims.user_id);
         let domain_req = UpdatePostRequest {
-            title: if req.title.is_empty() { None } else { Some(req.title) },
-            content: if req.content.is_empty() { None } else { Some(req.content) },
+            title: if req.title.is_empty() {
+                None
+            } else {
+                Some(req.title)
+            },
+            content: if req.content.is_empty() {
+                None
+            } else {
+                Some(req.content)
+            },
         };
         let post = self
             .blog_service

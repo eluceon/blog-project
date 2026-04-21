@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use anyhow::Context;
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
+use anyhow::Context;
 use tonic::transport::Server;
 use tracing::info;
 
@@ -23,9 +23,7 @@ use infrastructure::{
 };
 use presentation::{
     grpc_service::BlogGrpcService,
-    http_handlers::{
-        create_post, delete_post, get_post, list_posts, login, register, update_post,
-    },
+    http_handlers::{create_post, delete_post, get_post, list_posts, login, register, update_post},
     middleware::jwt_validator,
 };
 use proto::blog::blog_service_server::BlogServiceServer;
@@ -41,10 +39,8 @@ async fn main() -> anyhow::Result<()> {
 
     dotenvy::dotenv().ok();
 
-    let database_url = std::env::var("DATABASE_URL")
-        .context("DATABASE_URL must be set")?;
-    let jwt_secret = std::env::var("JWT_SECRET")
-        .context("JWT_SECRET must be set")?;
+    let database_url = std::env::var("DATABASE_URL").context("DATABASE_URL must be set")?;
+    let jwt_secret = std::env::var("JWT_SECRET").context("JWT_SECRET must be set")?;
 
     info!("Connecting to database...");
     let pool = create_pool(&database_url).await?;

@@ -7,11 +7,17 @@ use crate::domain::{DomainError, Post};
 #[async_trait]
 pub trait PostRepository: Send + Sync {
     /// Insert a new post and return the created record.
-    async fn create(&self, title: &str, content: &str, author_id: i64) -> Result<Post, DomainError>;
+    async fn create(&self, title: &str, content: &str, author_id: i64)
+    -> Result<Post, DomainError>;
     /// Find a post by its primary key, joining the author's username.
     async fn find_by_id(&self, id: i64) -> Result<Post, DomainError>;
     /// Update title and/or content; `None` means keep existing value.
-    async fn update(&self, id: i64, title: Option<&str>, content: Option<&str>) -> Result<Post, DomainError>;
+    async fn update(
+        &self,
+        id: i64,
+        title: Option<&str>,
+        content: Option<&str>,
+    ) -> Result<Post, DomainError>;
     /// Delete a post by its primary key.
     async fn delete(&self, id: i64) -> Result<(), DomainError>;
     /// Return a page of posts and the total count of all posts.
@@ -58,7 +64,12 @@ impl PostgresPostRepository {
 
 #[async_trait]
 impl PostRepository for PostgresPostRepository {
-    async fn create(&self, title: &str, content: &str, author_id: i64) -> Result<Post, DomainError> {
+    async fn create(
+        &self,
+        title: &str,
+        content: &str,
+        author_id: i64,
+    ) -> Result<Post, DomainError> {
         sqlx::query_as::<_, PostRow>(
             "WITH inserted AS (
                 INSERT INTO posts (title, content, author_id)
@@ -97,7 +108,12 @@ impl PostRepository for PostgresPostRepository {
         })
     }
 
-    async fn update(&self, id: i64, title: Option<&str>, content: Option<&str>) -> Result<Post, DomainError> {
+    async fn update(
+        &self,
+        id: i64,
+        title: Option<&str>,
+        content: Option<&str>,
+    ) -> Result<Post, DomainError> {
         sqlx::query_as::<_, PostRow>(
             "WITH updated AS (
                 UPDATE posts

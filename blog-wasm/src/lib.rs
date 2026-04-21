@@ -96,10 +96,9 @@ async fn api_register(username: &str, email: &str, password: &str) -> Result<Aut
 
 #[cfg(target_arch = "wasm32")]
 async fn api_login(username: &str, password: &str) -> Result<AuthResponse, String> {
-    let body = serde_json::to_string(
-        &serde_json::json!({"username": username, "password": password}),
-    )
-    .map_err(|e| e.to_string())?;
+    let body =
+        serde_json::to_string(&serde_json::json!({"username": username, "password": password}))
+            .map_err(|e| e.to_string())?;
 
     let resp = Request::post(&format!("{SERVER_URL}/api/auth/login"))
         .header("Content-Type", "application/json")
@@ -303,8 +302,11 @@ fn app() -> Html {
                 return;
             }
             let (token, user_id, logged_username, view, error) = (
-                token.clone(), user_id.clone(), logged_username.clone(),
-                view.clone(), error.clone(),
+                token.clone(),
+                user_id.clone(),
+                logged_username.clone(),
+                view.clone(),
+                error.clone(),
             );
             spawn_local(async move {
                 match api_login(&uname, &pass).await {
@@ -341,8 +343,11 @@ fn app() -> Html {
                 return;
             }
             let (token, user_id, logged_username, view, error) = (
-                token.clone(), user_id.clone(), logged_username.clone(),
-                view.clone(), error.clone(),
+                token.clone(),
+                user_id.clone(),
+                logged_username.clone(),
+                view.clone(),
+                error.clone(),
             );
             spawn_local(async move {
                 match api_register(&uname, &email, &pass).await {
@@ -376,7 +381,10 @@ fn app() -> Html {
             }
             let tok = match (*token).clone() {
                 Some(t) => t,
-                None => { error.set(Some("Not authenticated.".to_owned())); return; }
+                None => {
+                    error.set(Some("Not authenticated.".to_owned()));
+                    return;
+                }
             };
             let (error, refresh) = (error.clone(), refresh.clone());
             spawn_local(async move {

@@ -59,12 +59,15 @@ impl BlogClient {
     }
 
     fn require_token(&self) -> Result<&str> {
-        self.token
-            .as_deref()
-            .ok_or(BlogClientError::NoToken)
+        self.token.as_deref().ok_or(BlogClientError::NoToken)
     }
 
-    pub async fn register(&mut self, username: &str, email: &str, password: &str) -> Result<AuthResponse> {
+    pub async fn register(
+        &mut self,
+        username: &str,
+        email: &str,
+        password: &str,
+    ) -> Result<AuthResponse> {
         let resp = match (&self.http, &mut self.grpc) {
             (Some(h), _) => h.register(username, email, password).await?,
             (_, Some(g)) => g.register(username, email, password).await?,

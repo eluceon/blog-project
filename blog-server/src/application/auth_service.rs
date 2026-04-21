@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
 
 use crate::{
@@ -27,10 +27,7 @@ impl AuthService {
     }
 
     /// Register a new user, hash their password, and return a signed JWT token.
-    pub async fn register(
-        &self,
-        req: &RegisterUserRequest,
-    ) -> Result<(User, String), DomainError> {
+    pub async fn register(&self, req: &RegisterUserRequest) -> Result<(User, String), DomainError> {
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = Argon2::default()
             .hash_password(req.password.as_bytes(), &salt)
@@ -54,8 +51,8 @@ impl AuthService {
             .await
             .map_err(|_| DomainError::InvalidCredentials)?;
 
-        let parsed = PasswordHash::new(&user.password_hash)
-            .map_err(|_| DomainError::InvalidCredentials)?;
+        let parsed =
+            PasswordHash::new(&user.password_hash).map_err(|_| DomainError::InvalidCredentials)?;
         Argon2::default()
             .verify_password(req.password.as_bytes(), &parsed)
             .map_err(|_| DomainError::InvalidCredentials)?;

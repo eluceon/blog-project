@@ -1,10 +1,10 @@
-use tonic::{metadata::MetadataValue, transport::Channel, Request};
+use tonic::{Request, metadata::MetadataValue, transport::Channel};
 
 use crate::error::{BlogClientError, Result};
 use crate::http_client::{AuthResponse, ListPostsResponse, PostData, UserData};
 use crate::proto::blog::{
-    blog_service_client::BlogServiceClient, CreatePostRequest, DeletePostRequest, GetPostRequest,
-    ListPostsRequest, LoginRequest, RegisterRequest, UpdatePostRequest,
+    CreatePostRequest, DeletePostRequest, GetPostRequest, ListPostsRequest, LoginRequest,
+    RegisterRequest, UpdatePostRequest, blog_service_client::BlogServiceClient,
 };
 
 fn post_from_proto(p: crate::proto::blog::Post) -> PostData {
@@ -100,7 +100,12 @@ impl GrpcBlogClient {
         })
     }
 
-    pub async fn create_post(&mut self, token: &str, title: &str, content: &str) -> Result<PostData> {
+    pub async fn create_post(
+        &mut self,
+        token: &str,
+        title: &str,
+        content: &str,
+    ) -> Result<PostData> {
         let req = self.with_token(
             CreatePostRequest {
                 title: title.to_owned(),

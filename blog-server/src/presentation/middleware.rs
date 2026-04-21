@@ -1,11 +1,6 @@
 use std::sync::Arc;
 
-use actix_web::{
-    dev::ServiceRequest,
-    error::ErrorUnauthorized,
-    web::Data,
-    Error, HttpMessage,
-};
+use actix_web::{Error, HttpMessage, dev::ServiceRequest, error::ErrorUnauthorized, web::Data};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 
 use crate::infrastructure::jwt::JwtService;
