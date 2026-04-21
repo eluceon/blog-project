@@ -2,6 +2,8 @@
 name = "blog-client"
 version = "0.1.0"
 edition = "2024"
+description = "Client library for the blog API supporting HTTP and gRPC transports"
+license = "MIT"
 
 [dependencies]
 tokio = { workspace = true }

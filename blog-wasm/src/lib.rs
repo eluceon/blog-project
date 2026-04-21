@@ -588,11 +588,11 @@ fn app() -> Html {
                                                 if is_author {
                                                     <div class="post-actions">
                                                         <button class="btn btn-sm"
-                                                            onclick={on_edit.unwrap()}>
+                                                            onclick={on_edit.unwrap_or_else(|| Callback::from(|_: MouseEvent| {}))}>
                                                             {"Edit"}
                                                         </button>
                                                         <button class="btn btn-sm btn-danger"
-                                                            onclick={on_delete.unwrap()}>
+                                                            onclick={on_delete.unwrap_or_else(|| Callback::from(|_: MouseEvent| {}))}>
                                                             {"Delete"}
                                                         </button>
                                                     </div>

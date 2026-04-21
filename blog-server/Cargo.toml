@@ -2,6 +2,8 @@
 name = "blog-server"
 version = "0.1.0"
 edition = "2024"
+description = "HTTP and gRPC blog server with PostgreSQL backend"
+license = "MIT"
 
 [dependencies]
 tokio = { workspace = true }

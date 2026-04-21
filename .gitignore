@@ -5,7 +5,6 @@
 pkg/
 dist/
 node_modules/
-Cargo.lock
 *.so
 *.dylib
 .idea

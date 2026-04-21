@@ -2,6 +2,8 @@
 name = "blog-cli"
 version = "0.1.0"
 edition = "2024"
+description = "Command-line client for the blog API"
+license = "MIT"
 
 [dependencies]
 tokio = { workspace = true }
