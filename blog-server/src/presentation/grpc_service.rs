@@ -61,7 +61,6 @@ pub struct BlogGrpcService {
 }
 
 impl BlogGrpcService {
-    /// Create the service, sharing the same application services as the HTTP handlers.
     pub fn new(
         auth_service: Arc<AuthService>,
         blog_service: Arc<BlogService>,

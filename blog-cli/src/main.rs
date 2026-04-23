@@ -8,7 +8,6 @@ use clap::{Parser, Subcommand};
 /// Path where the JWT token is persisted between CLI invocations
 const TOKEN_FILE: &str = ".blog_token";
 
-/// Default server addresses
 const DEFAULT_HTTP_SERVER: &str = "http://localhost:8080";
 const DEFAULT_GRPC_SERVER: &str = "http://localhost:50051";
 

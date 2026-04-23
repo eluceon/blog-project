@@ -11,14 +11,12 @@ use crate::{
     infrastructure::jwt::JwtService,
 };
 
-/// Application service for user registration and login.
 pub struct AuthService {
     user_repo: Arc<dyn UserRepository>,
     jwt_service: Arc<JwtService>,
 }
 
 impl AuthService {
-    /// Create an `AuthService` backed by the given repository and JWT signer.
     pub fn new(user_repo: Arc<dyn UserRepository>, jwt_service: Arc<JwtService>) -> Self {
         Self {
             user_repo,
@@ -26,7 +24,6 @@ impl AuthService {
         }
     }
 
-    /// Register a new user, hash their password, and return a signed JWT token.
     pub async fn register(&self, req: &RegisterUserRequest) -> Result<(User, String), DomainError> {
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = Argon2::default()

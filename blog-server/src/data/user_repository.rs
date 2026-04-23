@@ -3,23 +3,18 @@ use sqlx::PgPool;
 
 use crate::domain::{DomainError, RegisterUserRequest, User};
 
-/// Port for user persistence operations.
 #[async_trait]
 pub trait UserRepository: Send + Sync {
-    /// Persist a new user with a pre-hashed password.
     async fn create(
         &self,
         req: &RegisterUserRequest,
         password_hash: &str,
     ) -> Result<User, DomainError>;
-    /// Find a user by their unique username.
     async fn find_by_username(&self, username: &str) -> Result<User, DomainError>;
-    /// Find a user by their primary key.
     #[allow(dead_code)]
     async fn find_by_id(&self, id: i64) -> Result<User, DomainError>;
 }
 
-/// DB row — keeps sqlx out of the domain layer.
 #[derive(sqlx::FromRow)]
 struct UserRow {
     id: i64,
@@ -41,13 +36,11 @@ impl From<UserRow> for User {
     }
 }
 
-/// PostgreSQL adapter for `UserRepository`.
 pub struct PostgresUserRepository {
     pool: PgPool,
 }
 
 impl PostgresUserRepository {
-    /// Create an adapter over an existing connection pool.
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }

@@ -3,28 +3,21 @@ use sqlx::PgPool;
 
 use crate::domain::{DomainError, Post};
 
-/// Port for post persistence operations.
 #[async_trait]
 pub trait PostRepository: Send + Sync {
-    /// Insert a new post and return the created record.
     async fn create(&self, title: &str, content: &str, author_id: i64)
     -> Result<Post, DomainError>;
-    /// Find a post by its primary key, joining the author's username.
     async fn find_by_id(&self, id: i64) -> Result<Post, DomainError>;
-    /// Update title and/or content; `None` means keep existing value.
     async fn update(
         &self,
         id: i64,
         title: Option<&str>,
         content: Option<&str>,
     ) -> Result<Post, DomainError>;
-    /// Delete a post by its primary key.
     async fn delete(&self, id: i64) -> Result<(), DomainError>;
-    /// Return a page of posts and the total count of all posts.
     async fn list(&self, limit: i64, offset: i64) -> Result<(Vec<Post>, i64), DomainError>;
 }
 
-/// DB row including author username via JOIN — keeps sqlx out of the domain layer.
 #[derive(sqlx::FromRow)]
 struct PostRow {
     id: i64,
@@ -50,13 +43,11 @@ impl From<PostRow> for Post {
     }
 }
 
-/// PostgreSQL adapter for `PostRepository`.
 pub struct PostgresPostRepository {
     pool: PgPool,
 }
 
 impl PostgresPostRepository {
-    /// Create an adapter over an existing connection pool.
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }

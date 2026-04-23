@@ -120,10 +120,8 @@ pub async fn delete_post(
 
 #[derive(Deserialize)]
 pub struct ListQuery {
-    /// Maximum number of posts to return (defaults to 10).
     #[serde(default = "default_limit")]
     pub limit: i64,
-    /// Number of posts to skip (defaults to 0).
     #[serde(default)]
     pub offset: i64,
 }

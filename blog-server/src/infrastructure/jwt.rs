@@ -5,25 +5,19 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const TOKEN_EXPIRY_SECS: u64 = 24 * 60 * 60;
 
-/// Claims embedded in a JWT token.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
-    /// ID of the authenticated user.
     pub user_id: i64,
-    /// Username of the authenticated user.
     pub username: String,
-    /// Unix timestamp (seconds) when the token expires.
     pub exp: usize,
 }
 
-/// Signs and verifies JWT tokens using a shared secret.
 pub struct JwtService {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
 }
 
 impl JwtService {
-    /// Create a `JwtService` from a base64 or plain-text secret string.
     pub fn new(secret: &str) -> Self {
         Self {
             encoding_key: EncodingKey::from_secret(secret.as_bytes()),
@@ -31,7 +25,6 @@ impl JwtService {
         }
     }
 
-    /// Generate a signed JWT token for the given user, valid for 24 hours.
     pub fn generate_token(&self, user_id: i64, username: &str) -> Result<String> {
         let now_secs = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -47,7 +40,6 @@ impl JwtService {
         encode(&Header::default(), &claims, &self.encoding_key).context("failed to encode JWT")
     }
 
-    /// Verify a JWT token and return its claims if valid.
     pub fn verify_token(&self, token: &str) -> Result<Claims> {
         let data = decode::<Claims>(token, &self.decoding_key, &Validation::default())
             .context("invalid or expired token")?;

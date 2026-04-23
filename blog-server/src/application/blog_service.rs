@@ -5,18 +5,15 @@ use crate::{
     domain::{CreatePostRequest, DomainError, Post, UpdatePostRequest},
 };
 
-/// Application service for blog post CRUD operations.
 pub struct BlogService {
     post_repo: Arc<dyn PostRepository>,
 }
 
 impl BlogService {
-    /// Create a `BlogService` backed by the given repository.
     pub fn new(post_repo: Arc<dyn PostRepository>) -> Self {
         Self { post_repo }
     }
 
-    /// Create a new post authored by `author_id`.
     pub async fn create_post(
         &self,
         req: &CreatePostRequest,
@@ -27,12 +24,10 @@ impl BlogService {
             .await
     }
 
-    /// Retrieve a post by its ID.
     pub async fn get_post(&self, id: i64) -> Result<Post, DomainError> {
         self.post_repo.find_by_id(id).await
     }
 
-    /// Update a post, enforcing that `user_id` is the author.
     pub async fn update_post(
         &self,
         id: i64,
@@ -48,7 +43,6 @@ impl BlogService {
             .await
     }
 
-    /// Delete a post, enforcing that `user_id` is the author.
     pub async fn delete_post(&self, id: i64, user_id: i64) -> Result<(), DomainError> {
         let post = self.post_repo.find_by_id(id).await?;
         if post.author_id != user_id {
@@ -57,7 +51,6 @@ impl BlogService {
         self.post_repo.delete(id).await
     }
 
-    /// List posts with pagination, returning posts and total count.
     pub async fn list_posts(
         &self,
         limit: i64,

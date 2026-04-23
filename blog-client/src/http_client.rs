@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{BlogClientError, Result};
 
-/// Timeout for all HTTP requests
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Debug, Deserialize, Clone, Serialize)]
@@ -47,7 +46,6 @@ pub struct HttpBlogClient {
 }
 
 impl HttpBlogClient {
-    /// Create a new HTTP client targeting `base_url`.
     pub fn new(base_url: String) -> crate::error::Result<Self> {
         let client = Client::builder()
             .timeout(REQUEST_TIMEOUT)
