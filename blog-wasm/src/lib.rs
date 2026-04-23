@@ -56,6 +56,12 @@ const SERVER_URL: &str = "http://localhost:8080";
 /// Key used to store the JWT token in localStorage.
 #[cfg(target_arch = "wasm32")]
 const TOKEN_KEY: &str = "blog_token";
+/// Key used to store the authenticated user's username in localStorage.
+#[cfg(target_arch = "wasm32")]
+const USERNAME_KEY: &str = "blog_username";
+/// Key used to store the authenticated user's id in localStorage.
+#[cfg(target_arch = "wasm32")]
+const USER_ID_KEY: &str = "blog_user_id";
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
@@ -208,8 +214,13 @@ fn read_textarea(r: &NodeRef) -> String {
 fn app() -> Html {
     // ── Global state ──────────────────────────────────────────────────────────
     let token: UseStateHandle<Option<String>> = use_state(|| LocalStorage::get(TOKEN_KEY).ok());
-    let user_id: UseStateHandle<Option<i64>> = use_state(|| None);
-    let logged_username: UseStateHandle<Option<String>> = use_state(|| None);
+    let user_id: UseStateHandle<Option<i64>> = use_state(|| {
+        LocalStorage::get::<String>(USER_ID_KEY)
+            .ok()
+            .and_then(|s| s.parse().ok())
+    });
+    let logged_username: UseStateHandle<Option<String>> =
+        use_state(|| LocalStorage::get(USERNAME_KEY).ok());
     let posts: UseStateHandle<Vec<PostData>> = use_state(Vec::new);
     let view: UseStateHandle<View> = use_state(|| View::Home);
     let error: UseStateHandle<Option<String>> = use_state(|| None);
@@ -265,6 +276,8 @@ fn app() -> Html {
             user_id.set(None);
             logged_username.set(None);
             LocalStorage::delete(TOKEN_KEY);
+            LocalStorage::delete(USERNAME_KEY);
+            LocalStorage::delete(USER_ID_KEY);
             view.set(View::Home);
         })
     };
@@ -312,6 +325,8 @@ fn app() -> Html {
                 match api_login(&uname, &pass).await {
                     Ok(auth) => {
                         let _ = LocalStorage::set(TOKEN_KEY, &auth.token);
+                        let _ = LocalStorage::set(USERNAME_KEY, &auth.user.username);
+                        let _ = LocalStorage::set(USER_ID_KEY, &auth.user.id.to_string());
                         token.set(Some(auth.token));
                         user_id.set(Some(auth.user.id));
                         logged_username.set(Some(auth.user.username));
@@ -353,6 +368,8 @@ fn app() -> Html {
                 match api_register(&uname, &email, &pass).await {
                     Ok(auth) => {
                         let _ = LocalStorage::set(TOKEN_KEY, &auth.token);
+                        let _ = LocalStorage::set(USERNAME_KEY, &auth.user.username);
+                        let _ = LocalStorage::set(USER_ID_KEY, &auth.user.id.to_string());
                         token.set(Some(auth.token));
                         user_id.set(Some(auth.user.id));
                         logged_username.set(Some(auth.user.username));
