@@ -127,7 +127,7 @@ cargo run --bin blog-cli -- delete --id 1
 cargo run --bin blog-cli -- --grpc create --title "gRPC post" --content "via gRPC"
 
 # Point at a custom server
-cargo run --bin blog-cli -- --server http://myserver:8080 list
+cargo run --bin blog-cli -- --server http://localhost:8080 list
 ```
 
 ### HTTP API via curl
