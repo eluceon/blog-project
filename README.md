@@ -24,7 +24,7 @@ src/
 
 ## Prerequisites
 
-- Rust stable (1.75+) with `cargo`
+- Rust stable (1.85+) with `cargo`
 - Docker + Docker Compose — for the PostgreSQL database
 - `protoc` — Protocol Buffers compiler
 - `trunk` — for the WASM frontend (`cargo install trunk`)
